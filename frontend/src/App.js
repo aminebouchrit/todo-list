@@ -10,20 +10,38 @@ import Modal from 'react-bootstrap/Modal';
 
 function App() {
 
-
+const url='http://localhost:3000/tasks';
   // Add
-  const handleAddTask = () => {
-    const newTask = {
-      name: formData.name,
-      task: formData.task,
-      priority: formData.priority,
-      avatar: "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp", // Standard Avatar
+  const addTask = async (taskData) => {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: taskData.name,
+        task: taskData.task,
+        priority: taskData.priority,
+        avatar: taskData.avatar,  // Avatar-Link wird hier mitgesendet
+      }),
+    });
+    const data = await response.json();
+    setFormData({ name: '', task: '', priority: 'Low' });
+
+    fetchData();
+    return data;
+  };
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const response = await fetch(url);
+      const data = await response.json();
+      setTasks(data);  // `data` enthält nun auch die Avatars
+
     };
 
-    // Füge die neue Aufgabe hinzu und leere das Formular
-    setTasks([...tasks, newTask]);
-    setFormData({ name: '', task: '', priority: 'Low' });
-  };
+    fetchTasks();
+  }, []);
+
 
   // Remove
   const handleRemoveTask = (indexToRemove) => {
@@ -76,8 +94,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
 
 // load list
-  const url = 'http://localhost:3000/tasks';
-  const fetchData = async () => {
+   const fetchData = async () => {
     try {
       const response = await fetch(url);
       const data = await response.json();
@@ -223,7 +240,7 @@ function App() {
                       </Dropdown>
                     </Form.Group>
 
-                    <Button variant="primary" onClick={handleAddTask}>
+                    <Button variant="primary" onClick={() => addTask({ name: formData.name, task:formData.task, priority: formData.priority, avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp' })}>
                       Add
                     </Button>
                   </Form>
@@ -232,6 +249,7 @@ function App() {
                   <table className="table text-white mb-0">
                     <thead>
                     <tr>
+
                       <th scope="col">Team Member</th>
                       <th scope="col">Task</th>
                       <th scope="col">Priority</th>
